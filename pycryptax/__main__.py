@@ -18,17 +18,6 @@ Do not rely on this software for accuracy. Anything provided by this software
 does not constitute advice in any form. The software is provided "as is",
 without warranty of any kind. Please see the LICENSE and README.md files."""
 
-AFTER_MSG = """\
-Thank you for using PyCryptax. If you found this program useful, please consider
-giving a small donation to one of the following crypto addresses:
-
-  Bitcoin : 1Fj5hKbEfb2ndBgBsyErT5WJv7jyaSSZKW
- Ethereum : 0xdE77869FF85084e0020061ac9bf858f1722e8448
- Litecoin : MRuio1MGdDPmh5Wxk5nApDyraP9qKSdy6D
- Peercoin : PPJLqRggLFEPkSTt1AhytJWUxsBSLNA7E9
-   Monero : 848JNJDYRF9ZBXb3FAKkcMWYXbppcv8MaM3YYw4cCt1E7RKwCtUUaCbjUDjgkuxZYgFu5qCNfW5KJddrFz1hpCZR8cS2jCD
-"""
-
 def fail(message):
     print("\n" + message + ERR_NOTICE, file=sys.stderr)
     sys.exit(1)
@@ -137,13 +126,11 @@ information to CSV.
     if action == "income":
         print(BEFORE_MSG)
         getIncomeCalc().printSummary()
-        print(AFTER_MSG)
     elif action == "txs":
         getIncomeCalc().printTxs()
     elif action == "gain":
         print(BEFORE_MSG)
         getCGCalc(summary=True).printSummary()
-        print(AFTER_MSG)
     elif action == "disposals":
         getCGCalc(disposals=True).printDisposals()
 
