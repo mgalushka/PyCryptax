@@ -1,6 +1,10 @@
 import copy, datetime
 from decimal import Decimal
+from enum import Enum
+
 from pycryptax import util, output, datemap
+from pycryptax.csvdata import CSVTransactionGains
+
 
 class AssetPool():
 
@@ -67,10 +71,14 @@ class Gain():
     def gain(self):
         return self._value - self._cost
 
+class Rule(Enum):
+    SAME_DAY = "SAME DAY"
+    BED_AND_BREAKFASTING = "BED AND BREAKFASTING"
+
 class CapitalGainCalculator():
 
     def __init__(
-        self, gainData, priceData, start, end, summary=True, disposals=False
+        self, gainData: CSVTransactionGains, priceData, start, end, summary=True, disposals=True
     ):
 
         self._start = start
@@ -88,12 +96,7 @@ class CapitalGainCalculator():
         self._assetPoolsAtEnd = {}
         self._assetPools = {}
 
-        self._priceData = priceData
-
-        reportAsset = priceData.reportAsset()
-
-        def isNonReportAsset(asset):
-            return asset and asset != reportAsset
+        # self._priceData = priceData
 
         # Obtain total acquisition and disposal values for each day for every
         # asset
@@ -112,37 +115,23 @@ class CapitalGainCalculator():
 
             return dayTxs[date]
 
-        def getValueOfAssetAmount(asset, amount, otherAsset, otherAmount, date):
-
-            if otherAsset:
-                # Use the value of the other asset in exchange according to CG78310
-                return otherAmount * priceData.get(otherAsset, date)
-            else:
-                # Use market value
-                return amount * priceData.get(asset, date)
-
+        print(gainData)
         for date, tx in gainData:
-
-            if isNonReportAsset(tx.buyAsset):
+            print(tx)
+            if tx.amount > 0:
                 # Acquisition
 
-                getDayTxForAsset(tx.buyAsset, date).acquire(
-                    tx.buyAmount,
-                    getValueOfAssetAmount(
-                        tx.buyAsset, tx.buyAmount, tx.sellAsset,
-                        tx.sellAmount, date
-                    )
+                getDayTxForAsset(tx.asset, date).acquire(
+                    tx.amount,
+                    tx.amount * tx.price
                 )
 
-            if isNonReportAsset(tx.sellAsset):
+            if tx.amount < 0:
                 # Disposal
 
-                getDayTxForAsset(tx.sellAsset, date).dispose(
-                    tx.sellAmount,
-                    getValueOfAssetAmount(
-                        tx.sellAsset, tx.sellAmount, tx.buyAsset,
-                        tx.buyAmount, date
-                    )
+                getDayTxForAsset(tx.asset, date).dispose(
+                    -tx.amount,
+                    -tx.amount * tx.price
                 )
 
         def applyGain(asset, gain, date):
@@ -157,7 +146,7 @@ class CapitalGainCalculator():
             if self._includeDisposals:
                 self._disposals.insert(date, (asset, gain))
 
-        def match(asset, date, disposeTx, acquireTx):
+        def match(asset, date, matchDate, disposeTx, acquireTx, rule):
 
             # Get amount that can be matched
             amount = min(disposeTx.disposeAmt, acquireTx.acquireAmt)
@@ -184,12 +173,30 @@ class CapitalGainCalculator():
             disposeTx.disposeVal -= value
             acquireTx.acquireVal -= cost
 
+            profit = value - cost
+            print("SELL: {amount} {asset} on {dt} at £{price:.02f} gives {gain_or_loss} of {profit:.02f}".format(
+                amount=amount,
+                asset=asset,
+                dt=date,
+                gain_or_loss='GAIN' if profit >= 0 else 'LOSS',
+                price=cost / amount,
+                profit=profit,
+            ))
+            print("Matches with:\n"
+                  "BUY: {amount} {asset} shares bought on {dt} at £{price:0.2f} according to {rule} rule\n\n".format(
+                asset=asset,
+                amount=amount,
+                dt=matchDate,
+                price=cost / amount,
+                rule=rule.value,
+            ))
+
         for asset, dayTxs in assetTxs.items():
 
             # Same-day rule: Match disposals to acquisitions that happen on the same day
 
             for date, tx in dayTxs:
-                match(asset, date, tx, tx)
+                match(asset, date, date, tx, tx, Rule.SAME_DAY)
 
             # Bed and breakfasting rule
             # Match disposals to nearest acquisitions from 1->30 days afterwards
@@ -200,19 +207,19 @@ class CapitalGainCalculator():
                 if tx.disposeAmt == 0:
                     continue
 
-                # Loop though tranactions in range to match against
+                # Loop though transactions in range to match against
                 for matchDate, matchTx in dayTxs.range(
                     date + datetime.timedelta(days=1),
                     date + datetime.timedelta(days=30)
                 ):
-                    match(asset, date, tx, matchTx)
+                    match(asset, date, matchDate, tx, matchTx, Rule.BED_AND_BREAKFASTING)
 
             # Process section 104 holdings from very beginning but only count gains
             # realised between start and end.
 
             for date, tx in dayTxs:
 
-                # Only an acquisation or disposal, not both allowed.
+                # Only an acquisition or disposal, not both allowed.
                 # Should have been previously matched
                 assert(not (tx.acquireAmt != 0 and tx.disposeAmt != 0))
 
@@ -230,8 +237,13 @@ class CapitalGainCalculator():
                     if asset not in self._assetPools:
                         raise ValueError("Disposing of an asset not acquired")
 
+                    average_price = 0
+
                     # Adjust section 104 holding and get cost
                     try:
+                        total_cost = self._assetPools[asset].totalCost
+                        total_amount = self._assetPools[asset].totalQuantity
+                        average_price = total_cost / total_amount
                         cost = self._assetPools[asset].dispose(tx.disposeAmt)
                     except ValueError as e:
                         print(util.getPrettyDate(date) + " (" + asset + "): " + str(e))
@@ -239,6 +251,22 @@ class CapitalGainCalculator():
 
                     # Apply gain/loss
                     applyGain(asset, Gain(cost, tx.disposeVal), date)
+                    profit = tx.disposeVal - cost
+                    print("SELL: {amount} {asset} on {dt} at £{price:.02f} gives {gain_or_loss} of £{profit:.02f}".format(
+                        amount=tx.disposeAmt,
+                        asset=asset,
+                        dt=date,
+                        gain_or_loss='GAIN' if profit >= 0 else 'LOSS',
+                        price=tx.disposeVal / tx.disposeAmt,
+                        profit=profit,
+                    ))
+                    print("Matches with:\nBUY: SECTION 104 HOLDING. {amount} {asset} shares of £{total_amount} "
+                          "bought at average price of £{average_price}\n\n".format(
+                        asset=asset,
+                        amount=tx.disposeAmt,
+                        total_amount=total_amount,
+                        average_price=average_price,
+                    ))
 
                 if date <= end:
                     # Update asset pools up until the end of the range to get the
@@ -264,30 +292,30 @@ class CapitalGainCalculator():
 
         table.print()
 
-        print("SECTION 104 HOLDINGS AS OF {}:\n".format(util.getPrettyDate(self._end)))
+        # print("SECTION 104 HOLDINGS AS OF {}:\n".format(util.getPrettyDate(self._end)))
+        #
+        # table = output.OutputTable(5)
+        # table.appendRow("ASSET", "AMOUNT", "COST", "VALUE", "UNREALISED GAIN")
+        # table.appendGap()
+        #
+        # totalCost = Decimal(0)
+        # totalValue = Decimal(0)
 
-        table = output.OutputTable(5)
-        table.appendRow("ASSET", "AMOUNT", "COST", "VALUE", "UNREALISED GAIN")
-        table.appendGap()
-
-        totalCost = Decimal(0)
-        totalValue = Decimal(0)
-
-        for asset, pool in self._assetPoolsAtEnd.items():
-
-            value = pool.totalQuantity * self._priceData.get(asset, self._end)
-
-            totalCost += pool.totalCost
-            totalValue += value
-
-            table.appendRow(
-                asset, pool.totalQuantity, pool.totalCost, value, value - pool.totalCost
-            )
-
-        table.appendGap()
-        table.appendRow("", "TOTAL", totalCost, totalValue, totalValue - totalCost)
-
-        table.print()
+        # for asset, pool in self._assetPoolsAtEnd.items():
+        #
+        #     value = pool.totalQuantity * 1   # TODO: fix: self._priceData.get(asset, self._end)
+        #
+        #     totalCost += pool.totalCost
+        #     totalValue += value
+        #
+        #     table.appendRow(
+        #         asset, pool.totalQuantity, pool.totalCost, value, value - pool.totalCost
+        #     )
+        #
+        # table.appendGap()
+        # table.appendRow("", "TOTAL", totalCost, totalValue, totalValue - totalCost)
+        #
+        # table.print()
 
     def printDisposals(self):
 

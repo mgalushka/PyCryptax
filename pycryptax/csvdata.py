@@ -112,6 +112,26 @@ class GainTx():
             self.buyAsset = None
             self.buyAmount = None
 
+class TransactionGainTx():
+
+    def __init__(self, asset, amount, price):
+
+        if not isEmpty(asset):
+            self.asset = asset
+            self.amount = Decimal(amount)
+            self.price = Decimal(price)
+        else:
+            self.asset = None
+            self.amount = None
+            self.price = None
+
+    def __str__(self):
+        return '{amount} {asset} @ {price}'.format(
+            amount=self.amount,
+            asset=self.asset,
+            price=self.price,
+        )
+
 class CSVGains(CSVDateMap):
 
     def __init__(self, filename):
@@ -121,6 +141,16 @@ class CSVGains(CSVDateMap):
         return GainTx(
             row["SELL ASSET"], row["BUY ASSET"],
             row["SELL AMOUNT"], row["BUY AMOUNT"]
+        )
+
+class CSVTransactionGains(CSVDateMap):
+
+    def __init__(self, filename):
+        super().__init__(filename)
+
+    def _processRow(self, row):
+        return TransactionGainTx(
+            row["ASSET"], row["AMOUNT"], row["PRICE"]
         )
 
 class CSVPrices(CSVDateMap):

@@ -113,7 +113,7 @@ information to CSV.
             "capital gains information", rootDir + GAINS_DIR, reportAsset
         ):
             return gains.CapitalGainCalculator(
-                csvdata.CSVGains(rootDir + GAINS_DIR), priceData, start, end,
+                csvdata.CSVTransactionGains(rootDir + GAINS_DIR), priceData, start, end,
                 **kwargs
             )
 
