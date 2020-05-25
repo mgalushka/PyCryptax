@@ -122,7 +122,7 @@ class CapitalGainCalculator():
 
                 getDayTxForAsset(tx.asset, date).acquire(
                     tx.amount,
-                    tx.amount * tx.price
+                    tx.amount * tx.price + tx.fee
                 )
 
             if tx.amount < 0:
@@ -130,7 +130,7 @@ class CapitalGainCalculator():
 
                 getDayTxForAsset(tx.asset, date).dispose(
                     -tx.amount,
-                    -tx.amount * tx.price
+                    -tx.amount * tx.price - tx.fee
                 )
 
         def applyGain(asset, gain, date):
@@ -173,19 +173,20 @@ class CapitalGainCalculator():
             acquireTx.acquireVal -= cost
 
             profit = value - cost
-            print("SELL: {amount} {asset} on {dt} at £{price:.02f} gives {gain_or_loss} of {profit:.02f}".format(
+            # print(type(date))
+            print("SELL: {amount} {asset} on {dt} at £{price:.02f} gives {gain_or_loss} of £{profit:.02f}".format(
                 amount=amount,
                 asset=asset,
-                dt=date,
+                dt=date.strftime("%d/%m/%Y"),
                 gain_or_loss='GAIN' if profit >= 0 else 'LOSS',
                 price=cost / amount,
-                profit=profit,
+                profit=abs(profit),
             ))
             print("Matches with:\n"
                   "BUY: {amount} {asset} shares bought on {dt} at £{price:0.2f} according to {rule} rule\n\n".format(
                 asset=asset,
                 amount=amount,
-                dt=matchDate,
+                dt=matchDate.strftime("%d/%m/%Y"),
                 price=cost / amount,
                 rule=rule.value,
             ))
@@ -249,18 +250,18 @@ class CapitalGainCalculator():
                         raise e
 
                     # Apply gain/loss
-                    applyGain(asset, Gain(cost, tx.disposeVal), date)
                     profit = tx.disposeVal - cost
+                    applyGain(asset, Gain(cost, tx.disposeVal), date)
                     print("SELL: {amount} {asset} on {dt} at £{price:.02f} gives {gain_or_loss} of £{profit:.02f}".format(
                         amount=tx.disposeAmt,
                         asset=asset,
-                        dt=date,
+                        dt=date.strftime("%d/%m/%Y"),
                         gain_or_loss='GAIN' if profit >= 0 else 'LOSS',
                         price=tx.disposeVal / tx.disposeAmt,
-                        profit=profit,
+                        profit=abs(profit),
                     ))
-                    print("Matches with:\nBUY: SECTION 104 HOLDING. {amount} {asset} shares of £{total_amount} "
-                          "bought at average price of £{average_price}\n\n".format(
+                    print("Matches with:\nBUY: SECTION 104 HOLDING. {amount} {asset} shares of {total_amount} "
+                          "bought at average price of £{average_price:.02f}\n\n".format(
                         asset=asset,
                         amount=tx.disposeAmt,
                         total_amount=total_amount,
