@@ -316,19 +316,4 @@ class CapitalGainCalculator():
         #
         # table.print()
 
-    def printDisposals(self):
-
-        print("Date,Asset,Cost,Proceeds,Gain")
-
-        def numFormat(n):
-            return "{:.2f}".format(n)
-
-        for date, (asset, gain) in self._disposals:
-            print("{},\"{}\",{},{},{}".format(
-                util.getPrettyDate(date),
-                asset.replace('"', '""'),
-                numFormat(gain.cost()),
-                numFormat(gain.value()),
-                numFormat(gain.gain()),
-            ))
 
