@@ -145,6 +145,14 @@ class CapitalGainCalculator():
             if self._includeDisposals:
                 self._disposals.insert(date, (asset, gain))
 
+        def gainOrLoss(profit):
+            if profit >= Decimal(0.01):
+                return "GAIN"
+            elif profit <= Decimal(-0.01):
+                return "LOSS"
+            else:
+                return "neither GAIN nor LOSS"
+
         def match(asset, date, matchDate, disposeTx, acquireTx, rule):
 
             # Get amount that can be matched
@@ -178,7 +186,7 @@ class CapitalGainCalculator():
                 amount=amount,
                 asset=asset,
                 dt=date.strftime("%d/%m/%Y"),
-                gain_or_loss='GAIN' if profit >= 0 else 'LOSS',
+                gain_or_loss=gainOrLoss(profit),
                 price=cost / amount,
                 profit=abs(profit),
             ))
@@ -256,7 +264,7 @@ class CapitalGainCalculator():
                         amount=tx.disposeAmt,
                         asset=asset,
                         dt=date.strftime("%d/%m/%Y"),
-                        gain_or_loss='GAIN' if profit >= 0 else 'LOSS',
+                        gain_or_loss=gainOrLoss(profit),
                         price=tx.disposeVal / tx.disposeAmt,
                         profit=abs(profit),
                     ))
@@ -316,5 +324,3 @@ class CapitalGainCalculator():
         # table.appendRow("", "TOTAL", totalCost, totalValue, totalValue - totalCost)
         #
         # table.print()
-
-
