@@ -1,6 +1,6 @@
-# PyCryptax
+# StocksTax
 
-Pycryptax calculates capital gains using transactions and price
+StocksTax calculates capital gains using transactions and price
 data from CSV files for shares transactions. Capital
 gains are calculated according to section 104 holding; 30-day bed and
 breakfasting; and same-day rules. 
@@ -45,7 +45,7 @@ Trades should be provided with the following columns:
 
 ## Running Calculations
 
-Please run `pycryptax -h` for usage details.
+Please run `python3 pycryptax/__main__.py -h` for usage details.
 
 When running a calculation you must either be in the directory containing the
 `prices`, `income` and/or `gains` directories, or provide it using the `--dir`
