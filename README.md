@@ -62,3 +62,7 @@ The following actions are allowed:
 - **gain:** Produces the gain and loss for each asset and in total. Also
   displays the status of the section 104 holding at the end of the
 calculation period.
+
+## Acknowledgements
+
+This program code is based on [PyCryptax](https://github.com/MatthewLM/PyCryptax) project by Matthew Mitchell [GitHub: @MatthewLM](https://github.com/MatthewLM)
