@@ -2,10 +2,9 @@
 
 import argparse, sys
 from contextlib import contextmanager
-from pycryptax import csvdata, prices, income, gains, util
+from pycryptax import csvdata, prices, gains, util
 
 GAINS_DIR = "/gains"
-INCOME_DIR = "/income"
 PRICES_DIR = "/prices"
 ERR_NOTICE = """
 
@@ -83,7 +82,7 @@ information to CSV.
     )
 
     parser.add_argument(
-        "action", choices=["income", "txs", "gain", "disposals"]
+        "action", choices=["gain"]
     )
     parser.add_argument("start", type=str, help="Starting date of calculation")
     parser.add_argument("end", type=str, help="End date of calculation")
@@ -117,23 +116,9 @@ information to CSV.
                 **kwargs
             )
 
-    def getIncomeCalc():
-        with csvErrorHandler("income information", rootDir + INCOME_DIR, reportAsset):
-            return income.IncomeCalculator(
-                csvdata.CSVIncome(rootDir + INCOME_DIR), priceData, start, end
-            )
-
-    if action == "income":
-        print(BEFORE_MSG)
-        getIncomeCalc().printSummary()
-    elif action == "txs":
-        getIncomeCalc().printTxs()
-    elif action == "gain":
+    if action == "gain":
         print(BEFORE_MSG)
         getCGCalc(summary=True).printSummary()
-    elif action == "disposals":
-        getCGCalc(disposals=True).printDisposals()
 
 if __name__ == '__main__':
     main()
-
