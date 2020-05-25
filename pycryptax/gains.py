@@ -115,7 +115,6 @@ class CapitalGainCalculator():
 
             return dayTxs[date]
 
-        print(gainData)
         for date, tx in gainData:
             print(tx)
             if tx.amount > 0:

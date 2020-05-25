@@ -128,10 +128,12 @@ class TransactionGainTx():
             self.fee = None
 
     def __str__(self):
-        return '{amount} {asset} @ {price}'.format(
-            amount=self.amount,
+        return '{buy_or_sell} {amount} {asset} @ £{price:0.2f} with fee of £{fee:0.2f}'.format(
+            buy_or_sell='BUY' if self.amount >= 0 else 'SELL',
+            amount=abs(self.amount),
             asset=self.asset,
             price=self.price,
+            fee=self.fee,
         )
 
 class CSVGains(CSVDateMap):
