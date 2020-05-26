@@ -47,7 +47,7 @@ Trades should be provided with the following columns:
 
 ## Running Calculations
 
-Please run `python3 pycryptax/__main__.py -h` for usage details.
+Please run `PYTHONPATH=. python3 pycryptax/__main__.py -h` for usage details.
 
 When running a calculation you must either be in the directory containing the
 `prices`, `income` and/or `gains` directories, or provide it using the `--dir`
@@ -57,7 +57,7 @@ Calcuations are done for a particular period of time. The start and end dates
 need to be provided in the `YYYY-MM-DD` format. For example, to calculate income
 for the 2009-2010 tax year in the `./examples` directory:
 
-    python3 pycryptax/__main__.py gain 2019-04-06 2020-04-05 -d ./examples
+    PYTHONPATH=. python3 pycryptax/__main__.py gain 2019-04-06 2020-04-05 -d ./examples
 
 The following actions are allowed:
 
