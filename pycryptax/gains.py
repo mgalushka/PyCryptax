@@ -188,17 +188,17 @@ class CapitalGainCalculator:
             acquireTx.acquireVal -= cost
 
             profit = value - cost
-            print("SELL: {amount} {asset} on {dt} at £{disposePrice:.02f} "
+            print("SELL: {amount} {asset} on {dt} at £{disposePrice:.04f} (including fees) "
                   "gives {gain_or_loss} of £{profit:.02f}".format(
                 amount=amount,
                 asset=asset,
                 dt=date.strftime("%d/%m/%Y"),
                 gain_or_loss=gainOrLoss(profit),
-                disposePrice=disposeValue / amount,
+                disposePrice=value / amount,
                 profit=abs(profit),
             ))
             print("Matches with:\n"
-                  "BUY: {amount} {asset} shares bought on {dt} at £{price:0.2f} according to {rule} rule\n\n".format(
+                  "BUY: {amount} {asset} shares bought on {dt} at £{price:0.4f} (including fees) according to {rule} rule\n\n".format(
                 asset=asset,
                 amount=amount,
                 dt=matchDate.strftime("%d/%m/%Y"),
@@ -267,7 +267,8 @@ class CapitalGainCalculator:
                     # Apply gain/loss
                     profit = tx.disposeVal - cost
                     applyGain(asset, Gain(cost, tx.disposeVal), date)
-                    print("SELL: {amount} {asset} on {dt} at £{price:.02f} gives {gain_or_loss} of £{profit:.02f}".format(
+                    print("SELL: {amount} {asset} on {dt} at £{price:.04f} (including fees) "
+                          "gives {gain_or_loss} of £{profit:.02f}".format(
                         amount=tx.disposeAmt,
                         asset=asset,
                         dt=date.strftime("%d/%m/%Y"),
@@ -276,7 +277,7 @@ class CapitalGainCalculator:
                         profit=abs(profit),
                     ))
                     print("Matches with:\nBUY: SECTION 104 HOLDING. {amount} {asset} shares of {total_amount} "
-                          "bought at average price of £{average_price:.02f}\n\n".format(
+                          "bought at average price of £{average_price:.04f} (including fees)\n\n".format(
                         asset=asset,
                         amount=tx.disposeAmt,
                         total_amount=total_amount,
