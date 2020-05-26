@@ -53,7 +53,7 @@ class AggregateDayTxs():
 
 class Gain():
 
-    def __init__(self, cost=0, value=0):
+    def __init__(self, cost: Decimal = Decimal(0), value: Decimal = Decimal(0)):
         self._value = value
         self._cost = cost
 
@@ -153,7 +153,14 @@ class CapitalGainCalculator():
             else:
                 return "neither GAIN nor LOSS"
 
-        def match(asset, date, matchDate, disposeTx, acquireTx, rule):
+        def match(
+                asset: str,
+                date: datetime.datetime,
+                matchDate: datetime.datetime,
+                disposeTx: AggregateDayTxs,
+                acquireTx: AggregateDayTxs,
+                rule: Rule,
+        ):
 
             # Get amount that can be matched
             amount = min(disposeTx.disposeAmt, acquireTx.acquireAmt)
@@ -163,10 +170,10 @@ class CapitalGainCalculator():
                 return
 
             # Get proportion of cost
-            cost = acquireTx.acquireVal * amount / acquireTx.acquireAmt
+            cost = Decimal(acquireTx.acquireVal * amount / acquireTx.acquireAmt)
 
             # Get proportion of disposal value
-            value = disposeTx.disposeVal * amount / disposeTx.disposeAmt
+            value = Decimal(disposeTx.disposeVal * amount / disposeTx.disposeAmt)
 
             # Apply gain/loss
             applyGain(asset, Gain(cost, value), date)
@@ -174,7 +181,7 @@ class CapitalGainCalculator():
             # Adjust data to remove amounts and report asset values that have
             # been accounted for
 
-            ac_v = acquireTx.acquireVal
+            acquireValue = acquireTx.acquireVal
 
             disposeTx.disposeAmt -= amount
             acquireTx.acquireAmt -= amount
@@ -189,7 +196,7 @@ class CapitalGainCalculator():
                 asset=asset,
                 dt=date.strftime("%d/%m/%Y"),
                 gain_or_loss=gainOrLoss(profit),
-                price=ac_v / amount,
+                price=acquireValue / amount,
                 profit=abs(profit),
             ))
             print("Matches with:\n"
