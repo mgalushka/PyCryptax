@@ -174,6 +174,8 @@ class CapitalGainCalculator():
             # Adjust data to remove amounts and report asset values that have
             # been accounted for
 
+            ac_v = acquireTx.acquireVal
+
             disposeTx.disposeAmt -= amount
             acquireTx.acquireAmt -= amount
 
@@ -187,7 +189,7 @@ class CapitalGainCalculator():
                 asset=asset,
                 dt=date.strftime("%d/%m/%Y"),
                 gain_or_loss=gainOrLoss(profit),
-                price=cost / amount,
+                price=ac_v / amount,
                 profit=abs(profit),
             ))
             print("Matches with:\n"

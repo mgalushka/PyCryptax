@@ -3,7 +3,9 @@
 StocksTax calculates capital gains using transactions and price
 data from CSV files for shares transactions. Capital
 gains are calculated according to section 104 holding; 30-day bed and
-breakfasting; and same-day rules. 
+breakfasting; and same-day rules.
+
+Guidance on tax calculation when selling shares: https://www.gov.uk/tax-sell-shares
 
 ## Disclaimer
 
