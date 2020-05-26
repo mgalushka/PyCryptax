@@ -6,7 +6,7 @@ from pycryptax import util, output, datemap
 from pycryptax.csvdata import CSVTransactionGains
 
 
-class AssetPool():
+class AssetPool:
 
     def __init__(self):
         self.totalQuantity = 0
@@ -33,7 +33,7 @@ class AssetPool():
     def __repr__(self):
         return "AssetPool({}, {})".format(self.totalQuantity, self.totalCost)
 
-class AggregateDayTxs():
+class AggregateDayTxs:
 
     def __init__(self):
 
@@ -51,7 +51,7 @@ class AggregateDayTxs():
         self.disposeAmt += amt
         self.disposeVal += val
 
-class Gain():
+class Gain:
 
     def __init__(self, cost: Decimal = Decimal(0), value: Decimal = Decimal(0)):
         self._value = value
@@ -75,7 +75,7 @@ class Rule(Enum):
     SAME_DAY = "SAME DAY"
     BED_AND_BREAKFASTING = "BED AND BREAKFASTING"
 
-class CapitalGainCalculator():
+class CapitalGainCalculator:
 
     def __init__(
         self, gainData: CSVTransactionGains, priceData, start, end, summary=True, disposals=True
@@ -95,8 +95,6 @@ class CapitalGainCalculator():
 
         self._assetPoolsAtEnd = {}
         self._assetPools = {}
-
-        # self._priceData = priceData
 
         # Obtain total acquisition and disposal values for each day for every
         # asset
