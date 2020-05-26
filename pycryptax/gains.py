@@ -128,9 +128,10 @@ class CapitalGainCalculator():
             if tx.amount < 0:
                 # Disposal
 
+                amount = abs(tx.amount)
                 getDayTxForAsset(tx.asset, date).dispose(
-                    -tx.amount,
-                    -tx.amount * tx.price - tx.fee
+                    amount,
+                    amount * tx.price - tx.fee
                 )
 
         def applyGain(asset, gain, date):
@@ -181,7 +182,7 @@ class CapitalGainCalculator():
             # Adjust data to remove amounts and report asset values that have
             # been accounted for
 
-            acquireValue = acquireTx.acquireVal
+            disposeValue = disposeTx.disposeVal
 
             disposeTx.disposeAmt -= amount
             acquireTx.acquireAmt -= amount
@@ -190,13 +191,13 @@ class CapitalGainCalculator():
             acquireTx.acquireVal -= cost
 
             profit = value - cost
-            # print(type(date))
-            print("SELL: {amount} {asset} on {dt} at £{price:.02f} gives {gain_or_loss} of £{profit:.02f}".format(
+            print("SELL: {amount} {asset} on {dt} at £{disposePrice:.02f} "
+                  "gives {gain_or_loss} of £{profit:.02f}".format(
                 amount=amount,
                 asset=asset,
                 dt=date.strftime("%d/%m/%Y"),
                 gain_or_loss=gainOrLoss(profit),
-                price=acquireValue / amount,
+                disposePrice=disposeValue / amount,
                 profit=abs(profit),
             ))
             print("Matches with:\n"
@@ -298,8 +299,15 @@ class CapitalGainCalculator():
         table.appendRow("ASSET", "ACQUISITION COST", "DISPOSAL VALUE", "GAIN / LOSS")
         table.appendGap()
 
+        totalGains = Decimal(0)
+        totalLosses = Decimal(0)
+
         for k, v in self._assetGain.items():
             table.appendRow(k, v.cost(), v.value(), v.gain())
+            if v.gain() >= 0:
+                totalGains += v.gain()
+            else:
+                totalLosses -= v.gain()
 
         table.appendGap()
         table.appendRow(
@@ -308,6 +316,11 @@ class CapitalGainCalculator():
         )
 
         table.print()
+
+        print("\nYear Gains = £{gains:0.2f}  Year Losses = £{losses:0.2f}".format(
+            gains=totalGains,
+            losses=totalLosses,
+        ))
 
         # print("SECTION 104 HOLDINGS AS OF {}:\n".format(util.getPrettyDate(self._end)))
         #

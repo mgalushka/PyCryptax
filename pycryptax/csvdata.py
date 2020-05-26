@@ -149,8 +149,8 @@ class CSVGains(CSVDateMap):
 
 class CSVTransactionGains(CSVDateMap):
 
-    def __init__(self, filename):
-        super().__init__(filename)
+    def __init__(self, filename, requireDir=True):
+        super().__init__(filename, requireDir)
 
     def _processRow(self, row):
         return TransactionGainTx(
