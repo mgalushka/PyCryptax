@@ -8,17 +8,23 @@ from pycryptax.gains import CapitalGainCalculator
 
 class TestGains(unittest.TestCase):
 
-    @patch('pycryptax.csvdata.CSVDateMap._processFile')
-    @patch('os.path.isdir')
-    def test_simple(self, MockClass, mmm):
+    def setThisUp(self):
         config = {'isdir.return_value': False}
-        patcher = patch('os.path', **config)
-        mock_thing = patcher.start()
+        self.patcher1 = patch('os.path', **config)
+        self.patcher1.start()
 
         config2 = {'_processFile.return_value': None}
-        patcher2 = patch('pycryptax.csvdata.CSVDateMap', **config2)
-        mock_thing2 = patcher2.start()
+        self.patcher2 = patch('pycryptax.csvdata.CSVDateMap', **config2)
+        self.patcher2.start()
 
+    def tearThisDown(self):
+        self.patcher1.stop()
+        self.patcher2.stop()
+
+    @patch('pycryptax.csvdata.CSVDateMap._processFile')
+    @patch('os.path.isdir')
+    def test_double_match(self, _, __):
+        self.setThisUp()
         gainData = CSVTransactionGains("", requireDir=False)
         gainData.insert(
             datetime(2020, 1, 1),
@@ -41,4 +47,4 @@ class TestGains(unittest.TestCase):
 
         c = CapitalGainCalculator(gainData, None, datetime(2019, 4, 6), datetime(2020, 4, 5))
         c.printSummary()
-
+        self.tearThisDown()
