@@ -134,7 +134,7 @@ class CapitalGainCalculator:
         def applyGain(asset, gain, date):
 
             if date < start or date > end:
-                return
+                return False
 
             if self._includeSummary:
                 self._totalGain += gain
@@ -142,6 +142,8 @@ class CapitalGainCalculator:
 
             if self._includeDisposals:
                 self._disposals.insert(date, (asset, gain))
+
+            return True
 
         def gainOrLoss(profit):
             if profit >= Decimal(0.01):
@@ -174,7 +176,7 @@ class CapitalGainCalculator:
             value = Decimal(disposeTx.disposeVal * amount / disposeTx.disposeAmt)
 
             # Apply gain/loss
-            applyGain(asset, Gain(cost, value), date)
+            reportable = applyGain(asset, Gain(cost, value), date)
 
             # Adjust data to remove amounts and report asset values that have
             # been accounted for
@@ -187,24 +189,25 @@ class CapitalGainCalculator:
             disposeTx.disposeVal -= value
             acquireTx.acquireVal -= cost
 
-            profit = value - cost
-            print("SELL: {amount} {asset} on {dt} at £{disposePrice:.04f} (including fees) "
-                  "gives {gain_or_loss} of £{profit:.02f}".format(
-                amount=amount,
-                asset=asset,
-                dt=date.strftime("%d/%m/%Y"),
-                gain_or_loss=gainOrLoss(profit),
-                disposePrice=value / amount,
-                profit=abs(profit),
-            ))
-            print("Matches with:\n"
-                  "BUY: {amount} {asset} shares bought on {dt} at £{price:0.4f} (including fees) according to {rule} rule\n\n".format(
-                asset=asset,
-                amount=amount,
-                dt=matchDate.strftime("%d/%m/%Y"),
-                price=cost / amount,
-                rule=rule.value,
-            ))
+            if reportable:
+                profit = value - cost
+                print("SELL: {amount} {asset} on {dt} at £{disposePrice:.04f} (including fees) "
+                      "gives {gain_or_loss} of £{profit:.02f}".format(
+                    amount=amount,
+                    asset=asset,
+                    dt=date.strftime("%d/%m/%Y"),
+                    gain_or_loss=gainOrLoss(profit),
+                    disposePrice=value / amount,
+                    profit=abs(profit),
+                ))
+                print("Matches with:\n"
+                      "BUY: {amount} {asset} shares bought on {dt} at £{price:0.4f} (including fees) according to {rule} rule\n\n".format(
+                    asset=asset,
+                    amount=amount,
+                    dt=matchDate.strftime("%d/%m/%Y"),
+                    price=cost / amount,
+                    rule=rule.value,
+                ))
 
         for asset, dayTxs in assetTxs.items():
 
@@ -265,24 +268,25 @@ class CapitalGainCalculator:
                         raise e
 
                     # Apply gain/loss
-                    profit = tx.disposeVal - cost
-                    applyGain(asset, Gain(cost, tx.disposeVal), date)
-                    print("SELL: {amount} {asset} on {dt} at £{price:.04f} (including fees) "
-                          "gives {gain_or_loss} of £{profit:.02f}".format(
-                        amount=tx.disposeAmt,
-                        asset=asset,
-                        dt=date.strftime("%d/%m/%Y"),
-                        gain_or_loss=gainOrLoss(profit),
-                        price=tx.disposeVal / tx.disposeAmt,
-                        profit=abs(profit),
-                    ))
-                    print("Matches with:\nBUY: SECTION 104 HOLDING. {amount} {asset} shares of {total_amount} "
-                          "bought at average price of £{average_price:.04f} (including fees)\n\n".format(
-                        asset=asset,
-                        amount=tx.disposeAmt,
-                        total_amount=total_amount,
-                        average_price=average_price,
-                    ))
+                    reportable = applyGain(asset, Gain(cost, tx.disposeVal), date)
+                    if reportable:
+                        profit = tx.disposeVal - cost
+                        print("SELL: {amount} {asset} on {dt} at £{price:.04f} (including fees) "
+                              "gives {gain_or_loss} of £{profit:.02f}".format(
+                            amount=tx.disposeAmt,
+                            asset=asset,
+                            dt=date.strftime("%d/%m/%Y"),
+                            gain_or_loss=gainOrLoss(profit),
+                            price=tx.disposeVal / tx.disposeAmt,
+                            profit=abs(profit),
+                        ))
+                        print("Matches with:\nBUY: SECTION 104 HOLDING. {amount} {asset} shares of {total_amount} "
+                              "bought at average price of £{average_price:.04f} (including fees)\n\n".format(
+                            asset=asset,
+                            amount=tx.disposeAmt,
+                            total_amount=total_amount,
+                            average_price=average_price,
+                        ))
 
                 if date <= end:
                     # Update asset pools up until the end of the range to get the
