@@ -15,7 +15,11 @@ working directory
 BEFORE_MSG = """
 Do not rely on this software for accuracy. Anything provided by this software
 does not constitute advice in any form. The software is provided "as is",
-without warranty of any kind. Please see the LICENSE and README.md files."""
+without warranty of any kind. Please see the LICENSE and README.md files.
+\n\n
+
+Transaction matching report
+"""
 
 def fail(message):
     print("\n" + message + ERR_NOTICE, file=sys.stderr)

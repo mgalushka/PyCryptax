@@ -96,6 +96,8 @@ class CapitalGainCalculator:
         self._assetPoolsAtEnd = {}
         self._assetPools = {}
 
+        self.total_number_of_disposals = 0
+
         # Obtain total acquisition and disposal values for each day for every
         # asset
 
@@ -190,9 +192,11 @@ class CapitalGainCalculator:
             acquireTx.acquireVal -= cost
 
             if reportable:
+                self.total_number_of_disposals += 1
                 profit = value - cost
-                print("SELL: {amount} {asset} on {dt} at £{disposePrice:.04f} (including fees) "
+                print("{id}. SELL: {amount} {asset} on {dt} at £{disposePrice:.04f} (including fees) "
                       "gives {gain_or_loss} of £{profit:.02f}".format(
+                    id=self.total_number_of_disposals,
                     amount=amount,
                     asset=asset,
                     dt=date.strftime("%d/%m/%Y"),
@@ -270,9 +274,11 @@ class CapitalGainCalculator:
                     # Apply gain/loss
                     reportable = applyGain(asset, Gain(cost, tx.disposeVal), date)
                     if reportable:
+                        self.total_number_of_disposals += 1
                         profit = tx.disposeVal - cost
-                        print("SELL: {amount} {asset} on {dt} at £{price:.04f} (including fees) "
+                        print("{id}. SELL: {amount} {asset} on {dt} at £{price:.04f} (including fees) "
                               "gives {gain_or_loss} of £{profit:.02f}".format(
+                            id=self.total_number_of_disposals,
                             amount=tx.disposeAmt,
                             asset=asset,
                             dt=date.strftime("%d/%m/%Y"),
@@ -294,6 +300,8 @@ class CapitalGainCalculator:
                     self._assetPoolsAtEnd[asset] = copy.deepcopy(self._assetPools[asset])
 
     def printSummary(self):
+
+        print("\nTotal number of disposals: {} \n\n".format(self.total_number_of_disposals))
 
         output.printCalculationTitle("CAPITAL GAIN", self._start, self._end)
 
