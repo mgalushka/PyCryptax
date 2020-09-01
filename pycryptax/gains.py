@@ -78,7 +78,7 @@ class Rule(Enum):
 class CapitalGainCalculator:
 
     def __init__(
-        self, gainData: CSVTransactionGains, priceData, start, end, summary=True, disposals=True
+        self, gainData: CSVTransactionGains, start, end, summary=True, disposals=True,
     ):
 
         self._start = start
@@ -331,6 +331,8 @@ class CapitalGainCalculator:
             gains=totalGains,
             losses=totalLosses,
         ))
+
+        return (totalGains, totalLosses)
 
         # print("SECTION 104 HOLDINGS AS OF {}:\n".format(util.getPrettyDate(self._end)))
         #

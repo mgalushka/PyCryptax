@@ -116,13 +116,14 @@ information to CSV.
             "capital gains information", rootDir + GAINS_DIR, reportAsset
         ):
             return gains.CapitalGainCalculator(
-                csvdata.CSVTransactionGains(rootDir + GAINS_DIR), priceData, start, end,
+                csvdata.CSVTransactionGains(rootDir + GAINS_DIR), start, end,
                 **kwargs
             )
 
     if action == "gain":
         print(BEFORE_MSG)
-        getCGCalc(summary=True).printSummary()
+        summary = getCGCalc(summary=True).printSummary()
+        print(summary)
 
 if __name__ == '__main__':
     main()
