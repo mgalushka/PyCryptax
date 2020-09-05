@@ -1,3 +1,5 @@
+![](https://github.com/mgalushka/StocksTax/blob/master/content/StocksTax-Logo.png)
+
 # StocksTax
 
 StocksTax calculates capital gains using transactions and price
