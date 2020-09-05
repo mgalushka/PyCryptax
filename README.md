@@ -1,4 +1,4 @@
-![](https://github.com/mgalushka/StocksTax/blob/master/content/StocksTax-Logo.png)
+![StocksTax Logo](https://github.com/mgalushka/StocksTax/blob/master/content/StocksTax-Logo.png)
 
 # StocksTax
 
